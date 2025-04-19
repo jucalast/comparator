@@ -1,0 +1,148 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  text-align: center;
+}
+
+.description {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.spinner {
+  border: 4px solid rgba(var(--primary-rgb), 0.1);
+  border-radius: 50%;
+  border-top: 4px solid var(--primary);
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  background-color: rgba(var(--danger-rgb), 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  margin: 2rem 0;
+}
+
+.results {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.results h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--foreground);
+}
+
+.exportOptions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.exportButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exportButton:hover {
+  background-color: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .description {
+    font-size: 1rem;
+  }
+  
+  .main {
+    padding: 1rem;
+  }
+  
+  .exportOptions {
+    justify-content: center;
+  }
+}
+
+.formatInfo {
+  margin: 1rem 0;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  width: 100%;
+}
+
+.formatInfo summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  color: #4b5563;
+}
+
+.formatInfo summary:hover {
+  background-color: #f3f4f6;
+}
+
+.formatDetails {
+  padding: 1rem;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.formatDetails p {
+  margin-bottom: 0.5rem;
+}

@@ -1,0 +1,127 @@
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tableControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.searchInput {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  width: 300px;
+  font-size: 1rem;
+}
+
+.resultsCount {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.resultsTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.resultsTable th,
+.resultsTable td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.resultsTable th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  color: #374151;
+}
+
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortableHeader:hover {
+  background-color: #e5e7eb;
+}
+
+.priceCell {
+  font-weight: 600;
+  color: #047857;
+}
+
+.savings {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background-color: #ecfdf5;
+  color: #047857;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.priceDetails {
+  cursor: pointer;
+}
+
+.priceDetails summary {
+  padding: 0.25rem 0;
+  color: #4b5563;
+}
+
+.pricesList {
+  list-style-type: none;
+  padding: 0.5rem 0;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.pricesList li {
+  padding: 0.25rem 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.bestPrice {
+  font-weight: 600;
+  color: #047857;
+}
+
+.priceSource {
+  opacity: 0.8;
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .tableContainer {
+    box-shadow: none;
+  }
+  
+  .tableControls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .searchInput {
+    width: 100%;
+  }
+  
+  .resultsTable th:nth-child(2),
+  .resultsTable td:nth-child(2) {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

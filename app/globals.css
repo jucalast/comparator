@@ -1,12 +1,52 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #0070f3;
+  --primary-dark: #0050b3;
+  --secondary: #06b6d4;
+  --tertiary: #6366f1;
+  --success: #22c55e;
+  --warning: #eab308;
+  --danger: #ef4444;
+  --border-radius: 0.5rem;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  
+  /* Valores RGB para uso com transparência */
+  --primary-rgb: 0, 112, 243;
+  --primary-dark-rgb: 0, 80, 179;
+  --secondary-rgb: 6, 182, 212;
+  --tertiary-rgb: 99, 102, 241;
+  --success-rgb: 34, 197, 94;
+  --warning-rgb: 234, 179, 8;
+  --danger-rgb: 239, 68, 68;
+  --foreground-rgb: 23, 23, 23;
+  --background-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --primary: #0ea5e9;
+    --primary-dark: #38bdf8;
+    --secondary: #22d3ee;
+    --tertiary: #818cf8;
+    --success: #4ade80;
+    --warning: #facc15;
+    --danger: #f87171;
+    
+    /* Valores RGB para uso com transparência no modo escuro */
+    --primary-rgb: 14, 165, 233;
+    --primary-dark-rgb: 56, 189, 248;
+    --secondary-rgb: 34, 211, 238;
+    --tertiary-rgb: 129, 140, 248;
+    --success-rgb: 74, 222, 128;
+    --warning-rgb: 250, 204, 21;
+    --danger-rgb: 248, 113, 113;
+    --foreground-rgb: 237, 237, 237;
+    --background-rgb: 10, 10, 10;
   }
 }
 
