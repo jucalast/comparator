@@ -1,22 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FileUploader from './components/FileUploader';
 import ResultsTable from './components/ResultsTable';
 import ProcessingIndicator from './components/ProcessingIndicator';
 import { ComparisonResult, FileWithPreview, Product, ProcessingProgress } from './types';
 import { processTextFile } from './utils/fileProcessor';
+import { saveProducts } from './actions/saveProducts';
+import { getProductsWithPrices } from './actions/getProducts';
 import styles from './styles/Home.module.css';
 
 export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<ComparisonResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState<ProcessingProgress>({
     filesProcessed: 0,
     totalFiles: 0,
     productsFound: 0
   });
+  
+  // Carregar produtos do banco de dados ao iniciar
+  useEffect(() => {
+    async function loadProductsFromDB() {
+      try {
+        setIsLoading(true);
+        const response = await getProductsWithPrices();
+        if (response.success && response.results.length > 0) {
+          setResults(response.results);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar dados do banco:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadProductsFromDB();
+  }, []);
   
   // Atualizar resultados quando novos produtos são encontrados
   const updateResultsWithProducts = (newProducts: Product[]) => {
@@ -124,6 +146,14 @@ export default function Home() {
             processingErrors.push(`Nenhum produto encontrado em: ${file.name}`);
           } else {
             updateResultsWithProducts(products);
+            
+            // Salva produtos no banco de dados
+            try {
+              await saveProducts(products);
+            } catch (dbError) {
+              console.error('Erro ao salvar no banco de dados:', dbError);
+              processingErrors.push(`Erro ao salvar dados no banco: ${file.name}`);
+            }
           }
           
         } catch (fileError) {

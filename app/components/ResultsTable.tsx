@@ -39,11 +39,20 @@ export default function ResultsTable({ results }: ResultsTableProps) {
   const filteredAndSortedResults = useMemo(() => {
     // Filtros
     let filtered = results;
-    
-    // Filtro por condição (novo/seminovo)
+      // Filtro por condição (novo/seminovo/swap)
     if (filterCondition !== 'all') {
       filtered = filtered.filter(result => {
         const condition = result.details?.condition?.toLowerCase() || '';
+        
+        // Mapeamento mais preciso das condições para os filtros
+        if (filterCondition === 'novo') {
+          return condition === 'novo' || condition === 'new' || (!condition.includes('semi') && !condition.includes('used') && !condition.includes('swap'));
+        } else if (filterCondition === 'seminovo') {
+          return condition.includes('semi') || condition.includes('usado') || condition.includes('used');
+        } else if (filterCondition === 'swap') {
+          return condition.includes('swap');
+        }
+        
         return condition.includes(filterCondition.toLowerCase());
       });
     }
@@ -313,16 +322,32 @@ export default function ResultsTable({ results }: ResultsTableProps) {
               const model = details.model || result.description.split(' ')[0];
               const storage = details.storage || 'N/A';
               const color = details.color || 'N/A';
-              const condition = details.condition || 'N/A';
-              
-              // Formata a condição para exibição
+              const condition = details.condition || 'N/A';              // Formata a condição para exibição
               const formattedCondition = (() => {
                 if (!condition || condition === 'N/A') return 'N/A';
-                if (condition.toLowerCase().includes('novo')) return 'Novo';
-                if (condition.toLowerCase().includes('semi')) return 'Seminovo';
-                if (condition.toLowerCase().includes('swap')) return 'Swap';
-                if (condition.toLowerCase().includes('used')) return 'Seminovo';
-                return condition;
+                
+                const conditionLower = condition.toLowerCase().trim();
+                
+                console.log(`Processando condição: "${condition}" (${conditionLower})`);
+                
+                // Garante que a condição será uma das três opções padrão
+                if (conditionLower === 'semi-novo' || 
+                    conditionLower === 'semi novo' || 
+                    conditionLower === 'seminovo' || 
+                    conditionLower === 'usado' || 
+                    conditionLower === 'used' || 
+                    conditionLower.includes('usado') || 
+                    conditionLower.includes('semi')) {
+                  return 'Seminovo';
+                }
+                
+                if (conditionLower === 'swap' || 
+                    conditionLower.includes('swap')) {
+                  return 'Swap';
+                }
+                
+                // Se não for nenhuma das anteriores, assume como "Novo"
+                return 'Novo';
               })();
               
               // Determina a classe de estilo para a condição
@@ -332,9 +357,34 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 if (formattedCondition === 'Swap') return styles.conditionSwap;
                 return '';
               })();
+                // Encontra o segundo melhor preço (mais caro que o melhor) apenas entre produtos da mesma condição
+              const productCondition = formattedCondition; // Usa a condição já formatada
               
-              // Encontra o segundo melhor preço (mais caro que o melhor)
-              const sortedPrices = [...result.allPrices].sort((a, b) => a.price - b.price);
+              // Filtra apenas produtos com a mesma condição antes de ordenar por preço
+              const pricesWithSameCondition = result.allPrices.filter(priceItem => {
+                // Encontra o produto correspondente a este preço para verificar a condição
+                const itemCondition = result.details?.condition?.toLowerCase().trim() || '';
+                
+                // Aplica a mesma lógica de formatação usada acima
+                let formattedItemCondition = 'Novo'; // Valor padrão
+                
+                if (itemCondition === 'semi-novo' || 
+                    itemCondition === 'semi novo' || 
+                    itemCondition === 'seminovo' || 
+                    itemCondition === 'usado' || 
+                    itemCondition === 'used' || 
+                    itemCondition.includes('usado') || 
+                    itemCondition.includes('semi')) {
+                  formattedItemCondition = 'Seminovo';
+                } else if (itemCondition === 'swap' || 
+                    itemCondition.includes('swap')) {
+                  formattedItemCondition = 'Swap';
+                }
+                
+                return formattedItemCondition === productCondition;
+              });
+              
+              const sortedPrices = [...pricesWithSameCondition].sort((a, b) => a.price - b.price);
               const secondBestPrice = sortedPrices.length > 1 ? sortedPrices[1] : null;
               
               return (
