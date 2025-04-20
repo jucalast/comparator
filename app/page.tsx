@@ -148,67 +148,97 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Comparador de Preços</h1>
-          
-          <p className={styles.description}>
-            Faça upload de tabelas de preços em TXT/CSV para comparar e encontrar os melhores preços para cada produto.
-          </p>
-        </header>
-        
-        <FileUploader onFilesUploaded={processFiles} />
-        
-        {isProcessing && (
-          <ProcessingIndicator progress={progress} />
-        )}
-        
-        {error && (
-          <div className={styles.error} role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-              <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
-            </svg>
-            <p>{error}</p>
-          </div>
-        )}
-        
-        {results.length > 0 && (
-          <div className={styles.results}>
-            <h2>
-              Resultados da Comparação 
-              {isProcessing && <span>Atualizando...</span>}
-            </h2>
-            <ResultsTable results={results} />
-            
-            <div className={styles.exportOptions}>
-              <button
-                onClick={() => {
-                  const csv = [
-                    ['Código', 'Descrição', 'Melhor Preço', 'Fonte'],
-                    ...results.map(r => [r.code, r.description, r.bestPrice.toFixed(2).replace('.', ','), r.bestSource])
-                  ].map(row => row.join(';')).join('\n');
-                  
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.setAttribute('href', url);
-                  link.setAttribute('download', 'comparacao-precos.csv');
-                  link.style.visibility = 'hidden';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
-                }}
-                className={styles.exportButton}
-                aria-label="Exportar resultados para CSV"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                  <path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
-                </svg>
-                Exportar Resultados (CSV)
-              </button>
+        {/* Sidebar com informações fixas */}
+        <aside className={styles.sidebar}>
+          <div className={styles.logoArea}>
+            <div className={styles.logo}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177A7.547 7.547 0 016.648 6.61a.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z" clipRule="evenodd" />
+              </svg>
+              Comparador de Preços
             </div>
           </div>
-        )}
+          
+          <header className={styles.header}>
+            <h1 className={styles.title}>Análise de Preços</h1>
+            
+            <p className={styles.description}>
+              Faça upload de tabelas de preços em TXT/CSV para encontrar os melhores preços para cada produto.
+            </p>
+          </header>
+          
+          <FileUploader onFilesUploaded={processFiles} />
+          
+          <div className={styles.processingWrapper}>
+            {isProcessing && (
+              <ProcessingIndicator progress={progress} />
+            )}
+            
+            {error && (
+              <div className={styles.error} role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={styles.iconSm}>
+                  <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                </svg>
+                <p>{error}</p>
+              </div>
+            )}
+          </div>
+        </aside>
+        
+        {/* Área principal com a tabela de resultados */}
+        <section className={styles.contentArea}>
+          {results.length > 0 && (
+            <div className={styles.results}>
+              <div className={styles.resultsHeader}>
+                <h2>
+                  Resultados da Comparação 
+                  {isProcessing && <span>Atualizando...</span>}
+                </h2>
+                
+                <div className={styles.exportOptions}>
+                  <button
+                    onClick={() => {
+                      const csv = [
+                        ['Código', 'Descrição', 'Melhor Preço', 'Fonte'],
+                        ...results.map(r => [r.code, r.description, r.bestPrice.toFixed(2).replace('.', ','), r.bestSource])
+                      ].map(row => row.join(';')).join('\n');
+                      
+                      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.setAttribute('href', url);
+                      link.setAttribute('download', 'comparacao-precos.csv');
+                      link.style.visibility = 'hidden';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className={styles.exportButton}
+                    aria-label="Exportar resultados para CSV"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={styles.iconSm}>
+                      <path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                    </svg>
+                    Exportar CSV
+                  </button>
+                </div>
+              </div>
+              
+              <ResultsTable results={results} />
+            </div>
+          )}
+          
+          {!results.length && !isProcessing && (
+            <div className={styles.emptyState}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={styles.iconXl}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+              </svg>
+              <h3>Nenhum resultado para exibir</h3>
+              <p>Faça o upload de arquivos para ver os resultados da comparação.</p>
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );

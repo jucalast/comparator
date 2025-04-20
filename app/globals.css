@@ -8,13 +8,17 @@
   
   /* Cores semânticas */
   --color-primary: #3b82f6;
+  --color-primary-rgb: 59, 130, 246;
   --color-primary-hover: #2563eb;
   --color-success: #10b981;
+  --color-success-rgb: 16, 185, 129;
   --color-warning: #f59e0b;
+  --color-warning-rgb: 245, 158, 11;
   --color-danger: #ef4444;
+  --color-danger-rgb: 239, 68, 68;
   
   /* Cores de estado */
-  --color-highlight: rgba(255, 255, 255, 0.1);
+  --color-highlight: #141414;
   --color-highlight-hover: rgba(255, 255, 255, 0.15);
   
   /* Elementos de tabela */
@@ -68,13 +72,17 @@
     
     /* Cores semânticas mantêm mais saturação no dark mode para legibilidade */
     --color-primary: #3b82f6;
+    --color-primary-rgb: 59, 130, 246;
     --color-primary-hover: #60a5fa;
     --color-success: #10b981;
+    --color-success-rgb: 16, 185, 129;
     --color-warning: #f59e0b;
+    --color-warning-rgb: 245, 158, 11;
     --color-danger: #ef4444;
+    --color-danger-rgb: 239, 68, 68;
     
     /* Cores de estado no dark mode */
-    --color-highlight: rgba(255, 255, 255, 0.2);
+    --color-highlight: #141414;
     --color-highlight-hover: rgba(255, 255, 255, 0.3);
     
     /* Elementos de tabela no dark mode */
@@ -176,4 +184,30 @@ svg[data-icon="info"],
   font-size: 1rem !important;
   max-width: 16px !important;
   max-height: 16px !important;
+}
+
+/* Barra de rolagem personalizada */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 8px;
+  border: none;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted);
 }

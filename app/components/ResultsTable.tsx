@@ -109,8 +109,13 @@ export default function ResultsTable({ results }: ResultsTableProps) {
     });
   }, [results, searchTerm, sortField, sortDirection, filterCondition]);
   
-  // Formata preço para exibição
+  // Atualizar a função formatPrice para lidar com preços muito altos
   const formatPrice = (price: number) => {
+    // Se o preço parece estar em centavos (muito alto), converte para reais
+    if (price > 10000 && price % 1 === 0) {
+      const adjustedPrice = price / 100;
+      return `R$ ${adjustedPrice.toFixed(2).replace('.', ',')}`;
+    }
     return `R$ ${price.toFixed(2).replace('.', ',')}`;
   };
   
@@ -232,7 +237,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
           <div className={styles.searchBox}>
             <input
               type="text"
-              placeholder="Buscar produto..."
+              placeholder="Buscar produto, código ou fornecedor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -261,19 +266,42 @@ export default function ResultsTable({ results }: ResultsTableProps) {
         <table className={styles.resultsTable}>
           <thead>
             <tr>
-              <th onClick={() => toggleSort('model')} className={styles.sortableHeader}>
-                Modelo {sortField === 'model' && (sortDirection === 'asc' ? '▲' : '▼')}
+              <th 
+                onClick={() => toggleSort('model')} 
+                className={styles.sortableHeader}
+                data-direction={sortField === 'model' ? sortDirection : undefined}
+                aria-sort={sortField === 'model' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Modelo
               </th>
-              <th onClick={() => toggleSort('storage')} className={styles.sortableHeader}>
-                Armazenamento {sortField === 'storage' && (sortDirection === 'asc' ? '▲' : '▼')}
+              <th 
+                onClick={() => toggleSort('storage')} 
+                className={styles.sortableHeader}
+                data-direction={sortField === 'storage' ? sortDirection : undefined}
+                aria-sort={sortField === 'storage' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Armazenamento
               </th>
-              <th>Cor</th>
-              <th>Condição</th>
-              <th onClick={() => toggleSort('bestPrice')} className={styles.sortableHeader}>
-                Melhor Preço {sortField === 'bestPrice' && (sortDirection === 'asc' ? '▲' : '▼')}
+              <th>
+                Cor
               </th>
-              <th>Economia</th>
-              <th>Comparação</th>
+              <th>
+                Condição
+              </th>
+              <th 
+                onClick={() => toggleSort('bestPrice')} 
+                className={styles.sortableHeader}
+                data-direction={sortField === 'bestPrice' ? sortDirection : undefined}
+                aria-sort={sortField === 'bestPrice' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
+                Melhor Preço
+              </th>
+              <th>
+                Economia
+              </th>
+              <th>
+                Comparação
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -311,14 +339,18 @@ export default function ResultsTable({ results }: ResultsTableProps) {
               
               return (
                 <tr key={result.code} className={result.allPrices.length > 1 ? styles.multipleSourcesRow : ''}>
-                  <td>{getDisplayModel(result)}</td>
-                  <td>{storage}</td>
-                  <td>{color}</td>
-                  <td className={conditionClass}>{formattedCondition}</td>
+                  <td title={getDisplayModel(result)}>{getDisplayModel(result)}</td>
+                  <td title={storage}>{storage}</td>
+                  <td title={color}>{color}</td>
+                  <td>
+                    <span className={conditionClass} title={formattedCondition}>
+                      {formattedCondition}
+                    </span>
+                  </td>
                   <td className={styles.priceCell}>
                     <div className={styles.bestPriceContainer}>
                       <span className={styles.priceValue}>{formatPrice(result.bestPrice)}</span>
-                      <span className={styles.priceSource}>{result.bestSource}</span>
+                      <span className={styles.priceSource} title={result.bestSource}>{result.bestSource}</span>
                     </div>
                   </td>
                   <td>
@@ -337,7 +369,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                     {secondBestPrice ? (
                       <div className={styles.comparisonContainer}>
                         <span className={styles.comparisonPrice}>{formatPrice(secondBestPrice.price)}</span>
-                        <span className={styles.comparisonSource}>{secondBestPrice.source}</span>
+                        <span className={styles.comparisonSource} title={secondBestPrice.source}>{secondBestPrice.source}</span>
                       </div>
                     ) : (
                       <span className={styles.singlePrice}>Único fornecedor</span>
@@ -352,7 +384,11 @@ export default function ResultsTable({ results }: ResultsTableProps) {
       
       {filteredAndSortedResults.length === 0 && (
         <div className={styles.noResults}>
-          Nenhum produto encontrado com os filtros atuais
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={styles.iconLg}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <h3>Nenhum produto encontrado</h3>
+          <p>Tente alterar os filtros ou critérios de busca.</p>
         </div>
       )}
     </div>

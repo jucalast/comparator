@@ -1,69 +1,76 @@
 .processingContainer {
   width: 100%;
-  margin: var(--space-6) 0;
-  padding: var(--space-6);
   background-color: var(--color-card);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  animation: fadeIn var(--transition-normal);
   border: 1px solid var(--color-border);
+  overflow: hidden;
+  padding: var(--space-3); /* Reduzido de space-4 para space-3 */
+  box-shadow: var(--shadow-sm);
+  font-size: 0.85rem;
 }
 
 .progressInfo {
   display: flex;
-  align-items: center;
-  margin-bottom: var(--space-6);
-  gap: var(--space-4);
+  align-items: flex-start;
+  gap: var(--space-2); /* Reduzido de space-3 para space-2 */
+  margin-bottom: var(--space-2); /* Reduzido de space-3 para space-2 */
 }
 
 .spinner {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 0.25rem solid rgba(59, 130, 246, 0.1);
-  border-radius: 50%;
+  width: 18px; /* Reduzido de 22px para 18px */
+  height: 18px;
+  border: 2px solid var(--color-border); /* Reduzido de 3px para 2px */
   border-top-color: var(--color-primary);
+  border-radius: 50%;
   animation: spin 1s linear infinite;
   flex-shrink: 0;
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .progressDetails {
-  flex: 1;
-  min-width: 0;
+  flex-grow: 1;
 }
 
 .progressTitle {
-  font-size: 1.125rem;
+  font-size: 0.9rem; /* Reduzido */
   font-weight: 600;
+  margin: 0 0 var(--space-1) 0;
   color: var(--color-foreground);
-  margin-bottom: var(--space-1);
 }
 
 .currentFile {
+  font-size: 0.75rem; /* Reduzido */
   color: var(--color-muted);
-  font-size: 0.875rem;
+  margin: 0 0 var(--space-2) 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: var(--space-2);
+  max-width: 100%;
 }
 
 .progressStats {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
-  font-size: 0.875rem;
+  gap: var(--space-2); /* Reduzido de space-3 para space-2 */
+  font-size: 0.75rem; /* Reduzido de 0.8rem para 0.75rem */
 }
 
 .statItem {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+  color: var(--color-foreground);
 }
 
 .statItem svg {
-  width: 16px;
-  height: 16px;
-  color: var(--color-muted);
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary);
 }
 
 .statLabel {
@@ -71,17 +78,15 @@
 }
 
 .statValue {
-  color: var(--color-foreground);
   font-weight: 600;
-  margin-left: var(--space-1);
 }
 
 .progressBarContainer {
-  position: relative;
   width: 100%;
-  height: 0.75rem;
-  background-color: rgba(59, 130, 246, 0.1);
+  height: 8px;
+  background-color: var(--color-highlight);
   border-radius: var(--radius-full);
+  position: relative;
   overflow: hidden;
 }
 
@@ -94,32 +99,9 @@
 
 .progressPercentage {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  right: 0;
+  top: -18px;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-foreground);
-  mix-blend-mode: difference;
-}
-
-@media (max-width: 640px) {
-  .processingContainer {
-    padding: var(--space-4);
-  }
-  
-  .progressInfo {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-4);
-  }
-  
-  .spinner {
-    margin: 0 auto var(--space-2);
-  }
-  
-  .progressStats {
-    flex-direction: column;
-    gap: var(--space-2);
-  }
 }

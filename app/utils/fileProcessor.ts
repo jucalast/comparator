@@ -1,223 +1,314 @@
-import Papa from 'papaparse';
-import { Product } from '../types';
-import { findSupplierProcessor } from '../suppliers';
-
-// Expressão regular mais flexível para capturar diferentes formatos de produtos
-const PRODUCT_REGEX = /(\d{5,6}-\d+)\s+(.+?)\s+(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})(?:R\$)?/gm;
+import { Product, FileWithPreview } from '../types';
+import { getAllProcessors } from '../suppliers/processorRegistry';
+import { normalizeProductDetails } from './productNormalizer';
 
 /**
- * Extrai produtos de um texto usando regex
+ * Lê o conteúdo de um arquivo como texto
  */
-export const extractProductsWithRegex = (text: string, source: string): Product[] => {
-  console.log(`Analisando texto do arquivo ${source} com ${text.length} caracteres`);
-  console.log('Primeiros 200 caracteres do texto:', text.substring(0, 200));
-  
-  // Usar expressão mais flexível com grupos de captura
+async function readFileText(file: FileWithPreview): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = (error) => {
+      reject(error);
+    };
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * Extrai produtos usando expressões regulares
+ */
+function extractProductsByRegex(text: string, source: string): Product[] {
   const products: Product[] = [];
-  const regex = new RegExp(PRODUCT_REGEX);
-  let match;
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
-  while ((match = regex.exec(text)) !== null) {
-    try {
-      const [fullMatch, code, description, priceStr] = match;
+  console.log(`Tentando extrair produtos por regex de ${lines.length} linhas`);
+  
+  // Padrão básico para iPhone com preço
+  const iphonePattern = /(?:i|I)Phone\s+(\d+(?:\s+(?:Pro|PRO|pro))?(?:\s+(?:Max|MAX|max))?)\s+(\d+(?:GB|TB)).*?R\$\s*([\d\.,]+)/g;
+  
+  // Aplicar regex em todo o texto
+  let match;
+  while ((match = iphonePattern.exec(text)) !== null) {
+    const model = match[1].trim();
+    const storage = match[2].trim().replace(/\s+/g, '');
+    const priceStr = match[3].trim();
+    const price = parseFloat(priceStr.replace(/\./g, '').replace(',', '.'));
+    
+    if (!isNaN(price) && price > 0) {
+      // Extrai informações de cor se disponível
+      const fullLine = match[0];
+      let color = 'N/A';
       
-      // Normaliza o preço: remove R$, pontos de milhar e substitui vírgula por ponto
-      let normalizedPrice = priceStr.replace(/R\$/g, '')
-                                  .replace(/\./g, '')
-                                  .replace(/,/g, '.');
-      
-      const price = parseFloat(normalizedPrice);
-      
-      if (!isNaN(price) && price > 0) {
-        products.push({
-          code,
-          description: description.trim(),
-          price,
-          source
-        });
+      // Lista de cores comuns para tentar detectar
+      const colors = ['preto', 'branco', 'azul', 'vermelho', 'verde', 
+                      'roxo', 'dourado', 'rose', 'gold', 'black', 
+                      'white', 'blue', 'red', 'green', 'purple'];
+                      
+      for (const c of colors) {
+        if (fullLine.toLowerCase().includes(c)) {
+          color = c.toUpperCase();
+          break;
+        }
       }
-    } catch (err) {
-      console.error('Erro ao processar match:', match, err);
+      
+      // Detalhes do produto
+      const details = {
+        brand: 'Apple',
+        model: `iPhone ${model}`,
+        storage,
+        color,
+        condition: fullLine.toLowerCase().includes('seminovo') ? 'Seminovo' : 'Novo'
+      };
+      
+      // Normaliza o código usando a função auxiliar
+      const { normalizedCode, normalizedDescription } = normalizeProductDetails(details);
+      
+      // Adiciona o produto
+      products.push({
+        code: normalizedCode,
+        description: `iPhone ${model} ${storage} ${color} - Extração Genérica`,
+        price,
+        source: source,
+        details
+      });
+      
+      console.log(`Produto extraído por regex: iPhone ${model} ${storage} ${color} - R$ ${price}`);
     }
   }
   
-  console.log(`Extraídos ${products.length} produtos do arquivo ${source} usando regex`);
   return products;
-};
+}
 
 /**
- * Processa arquivo de texto (TXT/CSV)
+ * Processa texto no formato CSV para extrair produtos
  */
-export const processTextFile = async (file: File): Promise<Product[]> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+function parseCSV(text: string, source: string): Product[] {
+  const products: Product[] = [];
+  
+  try {
+    // Detecta o separador (vírgula ou ponto-e-vírgula)
+    const separator = text.includes(';') ? ';' : ',';
     
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        console.log(`Arquivo ${file.name} carregado: ${text.length} caracteres`);
-        
-        let products: Product[] = [];
-        
-        // Tenta processar usando processadores específicos de fornecedores
-        const supplierProcessor = findSupplierProcessor(text);
-        if (supplierProcessor) {
-          console.log(`Processando arquivo usando ${supplierProcessor.name}`);
-          products = supplierProcessor.extractProducts(text, file.name);
-          
-          if (products.length > 0) {
-            console.log(`Extraídos ${products.length} produtos via processador específico`);
-            resolve(products);
-            return;
-          }
-        }
-        
-        // Se não conseguiu extrair por outros métodos, tenta CSV ou regex
-        const isCSV = text.includes(',') || text.includes(';');
-        
-        // Se parece CSV, tenta processar como CSV primeiro
-        if (isCSV) {
-          try {
-            Papa.parse(text, {
-              delimiter: text.includes(';') ? ';' : ',', // Auto-detecta o delimitador
-              header: true,
-              skipEmptyLines: true,
-              complete: (results) => {
-                console.log(`CSV parsed, ${results.data.length} linhas encontradas`);
-                console.log('Exemplo de linha:', results.data[0]);
-                
-                const csvProducts = results.data
-                  .filter((row: any) => {
-                    // Verifica se existe algum campo que pode ser um código
-                    const hasCode = row.code || row.codigo || row.cod || 
-                                   Object.values(row).some(val => 
-                                     typeof val === 'string' && /^\d{5,6}-\d+$/.test(val.toString().trim())
-                                   );
-                    
-                    // Verifica se existe algum campo que pode ser um preço
-                    const hasPrice = row.price || row.preco || row.valor || 
-                                    Object.values(row).some(val => 
-                                      typeof val === 'string' && 
-                                      /^\s*R?\$?\s*\d{1,3}(?:[.,]\d{3})*[.,]\d{2}\s*$/.test(val.toString().trim())
-                                    );
-                    
-                    return hasCode && hasPrice;
-                  })
-                  .map((row: any) => {
-                    try {
-                      // Tenta identificar campos por nome ou padrão
-                      
-
-                      // Identificação do código
-                      let code = row.code || row.codigo || row.cod;
-                      if (!code) {
-                        // Procura em todas as colunas por um padrão de código
-                        for (const key in row) {
-                          if (/^\d{5,6}-\d+$/.test(row[key].toString().trim())) {
-                            code = row[key].toString().trim();
-                            break;
-                          }
-                        }
-                      }
-                      
-                      // Identificação da descrição
-                      let description = row.description || row.descricao || row.desc || row.nome || row.produto;
-                      if (!description) {
-                        // Usa a primeira coluna que não é código nem preço como descrição
-                        for (const key in row) {
-                          const val = row[key].toString().trim();
-                          if (val && val !== code && !/^\s*R?\$?\s*\d{1,3}(?:[.,]\d{3})*[.,]\d{2}\s*$/.test(val)) {
-                            description = val;
-                            break;
-                          }
-                        }
-                      }
-                      
-                      // Identificação do preço
-                      let priceStr = row.price || row.preco || row.valor;
-                      if (!priceStr) {
-                        // Procura em todas as colunas por um padrão de preço
-                        for (const key in row) {
-                          const val = row[key].toString().trim();
-                          if (/^\s*R?\$?\s*\d{1,3}(?:[.,]\d{3})*[.,]\d{2}\s*$/.test(val)) {
-                            priceStr = val;
-                            break;
-                          }
-                        }
-                      }
-                      
-                      // Normalização do preço
-                      let normalizedPrice = priceStr.toString()
-                                              .replace(/[^\d,\.]/g, '') // Remove tudo exceto números, vírgulas e pontos
-                                              .replace(/\./g, '')       // Remove pontos
-                                              .replace(',', '.');       // Substitui vírgula por ponto
-                      
-
-                      const price = parseFloat(normalizedPrice);
-                      
-                      if (code && description && !isNaN(price) && price > 0) {
-                        return {
-                          code,
-                          description,
-                          price,
-                          source: file.name
-                        };
-                      }
-                      return null;
-                    } catch (error) {
-                      console.error('Erro ao processar linha CSV:', row, error);
-                      return null;
-                    }
-                  })
-                  .filter((p): p is Product => p !== null);
-                
-                console.log(`Extraídos ${csvProducts.length} produtos via CSV de ${file.name}`);
-                products = [...csvProducts];
-              },
-              error: (error: Error) => {
-                console.error('Erro ao processar CSV:', error);
-              }
-            });
-          } catch (csvError) {
-            console.error('Falha ao processar como CSV, tentando regex:', csvError);
-          }
-        }
-        
-        // Se não conseguiu extrair por outros métodos, usa regex
-        if (products.length === 0) {
-          products = extractProductsWithRegex(text, file.name);
-        }
-        
-        // Filtra produtos inválidos
-        products = products.filter(p => p.price > 0 && !isNaN(p.price));
-        
-        console.log(`Total final: ${products.length} produtos do arquivo ${file.name}`);
-        resolve(products);
-      } catch (error) {
-        console.error('Erro geral ao processar arquivo de texto:', error);
-        reject(error);
-      }
-    };
+    // Separa linhas e filtra vazias
+    const lines = text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
     
-    reader.onerror = () => {
-      reject(new Error(`Erro ao ler o arquivo ${file.name}`));
-    };
+    console.log(`CSV parsed, ${lines.length} linhas encontradas`);
+    console.log(`Exemplo de linha: ${JSON.stringify(lines[0].split(separator))}`);
     
-    reader.readAsText(file);
-  });
-};
-
-/**
- * Compara produtos e retorna os melhores preços
- */
-export const compareProducts = (allProducts: Product[]): Record<string, Product> => {
-  const bestPrices: Record<string, Product> = {};
-
-  allProducts.forEach(product => {
-    if (!bestPrices[product.code] || product.price < bestPrices[product.code].price) {
-      bestPrices[product.code] = product;
+    // Se tiver menos de 2 linhas, não processa (precisa de pelo menos cabeçalho e uma linha de dados)
+    if (lines.length < 2) return products;
+    
+    // Extrai cabeçalhos
+    const headers = lines[0].split(separator).map(h => h.trim().toLowerCase());
+    
+    // Verifica se temos colunas necessárias
+    const hasProducts = headers.some(h => 
+      h.includes('produto') || h.includes('descrição') || h.includes('model')
+    );
+    
+    const hasPrices = headers.some(h => 
+      h.includes('preço') || h.includes('valor') || h.includes('price')
+    );
+    
+    if (!hasProducts || !hasPrices) {
+      console.warn('CSV não contém colunas para produtos ou preços');
+      return products;
     }
-  });
+    
+    // Identifica os índices das colunas importantes
+    const descIndex = headers.findIndex(h => 
+      h.includes('produto') || h.includes('descrição') || h.includes('model')
+    );
+    
+    const priceIndex = headers.findIndex(h => 
+      h.includes('preço') || h.includes('valor') || h.includes('price')
+    );
+    
+    // Extrai outras colunas úteis se presentes
+    const storageIndex = headers.findIndex(h => 
+      h.includes('armazenamento') || h.includes('storage') || h.includes('capacidade')
+    );
+    
+    const colorIndex = headers.findIndex(h => 
+      h.includes('cor') || h.includes('color')
+    );
+    
+    // Processa linhas de dados
+    for (let i = 1; i < lines.length; i++) {
+      const columns = lines[i].split(separator).map(c => c.trim());
+      
+      // Pula se não tiver colunas suficientes
+      if (columns.length <= Math.max(descIndex, priceIndex)) continue;
+      
+      const description = columns[descIndex];
+      let priceStr = columns[priceIndex].replace(/[^\d\.,]/g, ''); // Remove tudo exceto números, pontos e vírgulas
+      
+      // Formata o preço corretamente
+      priceStr = priceStr.replace(/\./g, '').replace(',', '.');
+      const price = parseFloat(priceStr);
+      
+      if (!isNaN(price) && price > 0 && description) {
+        // Extrai informações extras quando disponíveis
+        const storage = storageIndex >= 0 && columns[storageIndex] ? columns[storageIndex] : '';
+        const color = colorIndex >= 0 && columns[colorIndex] ? columns[colorIndex] : '';
+        
+        // Tenta extrair um modelo a partir da descrição
+        let model = description;
+        let extractedStorage = storage;
+        
+        // Se for um iPhone, iPad, etc, tenta extrair o modelo
+        const appleMatch = description.match(/(?:iPhone|iPad|MacBook|Watch)\s+([^,]+)/i);
+        if (appleMatch) {
+          model = appleMatch[0];
+          
+          // Se não temos storage definido, tenta extrair da descrição
+          if (!extractedStorage) {
+            const storageMatch = description.match(/\b(\d+(?:GB|TB))\b/i);
+            if (storageMatch) {
+              extractedStorage = storageMatch[1];
+            }
+          }
+        }
+        
+        // Tenta extrair a marca do modelo ou da descrição
+        let brand = 'Unknown';
+        if (model.toLowerCase().includes('iphone') || model.toLowerCase().includes('ipad') || 
+            model.toLowerCase().includes('macbook') || model.toLowerCase().includes('watch')) {
+          brand = 'Apple';
+        } else if (model.toLowerCase().includes('samsung') || description.toLowerCase().includes('samsung')) {
+          brand = 'Samsung';
+        } else if (model.toLowerCase().includes('xiaomi') || description.toLowerCase().includes('xiaomi')) {
+          brand = 'Xiaomi';
+        }
+        
+        // Cria detalhes normalizados
+        const details = {
+          brand,
+          model,
+          storage: extractedStorage,
+          color,
+          condition: description.toLowerCase().includes('seminovo') ? 'Seminovo' : 'Novo'
+        };
+        
+        // Tenta normalizar o código
+        try {
+          const { normalizedCode, normalizedDescription } = normalizeProductDetails(details);
+          
+          // Cria o produto normalizado
+          products.push({
+            code: normalizedCode || `CSV-${i}`,
+            description: normalizedDescription || description,
+            price,
+            source,
+            details
+          });
+        } catch (error) {
+          // Fallback se a normalização falhar
+          products.push({
+            code: `CSV-${i}`,
+            description,
+            price,
+            source,
+            details
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao processar CSV:', error);
+  }
+  
+  return products;
+}
 
-  return bestPrices;
-};
+/**
+ * Processa um arquivo de texto e extrai produtos
+ */
+export async function processTextFile(file: FileWithPreview): Promise<Product[]> {
+  const text = await readFileText(file);
+  console.log(`Analisando texto do arquivo ${file.name} com ${text.length} caracteres`);
+  console.log(`Primeiros 200 caracteres do texto: ${text.substring(0, 200)}`);
+  
+  // Log para debug em caso de arquivo vazio
+  if (!text || text.trim().length === 0) {
+    console.error(`Arquivo ${file.name} está vazio ou inválido`);
+    return [];
+  }
+  
+  let products: Product[] = [];
+  
+  // 1. Tenta processar usando processadores específicos para diferentes fornecedores
+  const processors = getAllProcessors();
+  
+  // Debug: lista todos os processadores disponíveis
+  console.log(`Processadores disponíveis: ${processors.map(p => p.name).join(', ')}`);
+  
+  let matchingProcessor = null;
+  
+  for (const processor of processors) {
+    try {
+      const canProcess = processor.canProcess(text);
+      console.log(`Processador ${processor.name}: canProcess retornou ${canProcess}`);
+      
+      if (canProcess) {
+        console.log(`Usando processador específico para ${processor.name}`);
+        matchingProcessor = processor;
+        products = processor.extractProducts(text, processor.name);
+        
+        // Log detalhado de resultado
+        console.log(`Processador ${processor.name} extraiu ${products.length} produtos`);
+        
+        // Se encontrou produtos, interrompe o processamento
+        if (products.length > 0) {
+          break;
+        } else {
+          console.warn(`Processador ${processor.name} não encontrou produtos, tentando próximo processador...`);
+        }
+      }
+    } catch (error) {
+      console.error(`Erro ao usar processador ${processor.name}:`, error);
+    }
+  }
+  
+  // 2. Se nenhum processador específico encontrou produtos, tenta abordagem de extração simples por regex
+  if (products.length === 0) {
+    console.log(`Nenhum processador específico encontrou produtos, tentando extração genérica por regex`);
+    products = extractProductsByRegex(text, file.name);
+    console.log(`Extraídos ${products.length} produtos do arquivo ${file.name} usando regex`);
+  }
+  
+  // 3. Tentativa especial para formatos CSV
+  if (products.length === 0 && (file.name.endsWith('.csv') || text.includes(';') || text.includes(','))) {
+    console.log(`Tentando processar ${file.name} como CSV`);
+    products = parseCSV(text, file.name);
+    console.log(`Extraídos ${products.length} produtos via CSV de ${file.name}`);
+  }
+  
+  // 4. Tentativa específica para Rei das Caixas se o nome do arquivo ou conteúdo indicar
+  if (products.length === 0 && (
+      file.name.includes('REI DAS CAIXAS') || 
+      file.name.includes('👑') ||
+      text.includes('REI DAS CAIXAS') || 
+      (text.match(/👑/g) || []).length > 3)) {
+    
+    console.log(`Tentando processamento especial para Rei das Caixas`);
+    
+    // Força o processamento através do processador Rei das Caixas se disponível
+    const reiDasCaixasProcessor = processors.find(p => p.name === 'Rei das Caixas');
+    if (reiDasCaixasProcessor) {
+      console.log(`Forçando uso do processador Rei das Caixas`);
+      products = reiDasCaixasProcessor.extractProducts(text, 'Rei das Caixas');
+      console.log(`Processamento forçado extraiu ${products.length} produtos de Rei das Caixas`);
+    }
+  }
+  
+  console.log(`Total final: ${products.length} produtos do arquivo ${file.name}`);
+  
+  return products;
+}
