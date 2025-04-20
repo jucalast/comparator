@@ -1,9 +1,11 @@
 import { SupplierProcessor } from './supplierInterface';
 import { JCAtacadoProcessor } from './jcAtacadoProcessor';
 import { ZNCellProcessor } from './znCellProcessor';
+import { MadeInStoreProcessor } from './madeInStoreProcessor';
 
 // Registro de processadores de fornecedores
 const supplierProcessors: SupplierProcessor[] = [
+  new MadeInStoreProcessor(), // Coloque primeiro para ter prioridade nos PDFs
   new JCAtacadoProcessor(),
   new ZNCellProcessor(),
   // Adicionar novos processadores aqui
@@ -25,5 +27,5 @@ export function findSupplierProcessor(text: string): SupplierProcessor | null {
 /**
  * Exporta todos os processadores para uso direto
  */
-export { JCAtacadoProcessor, ZNCellProcessor };
+export { JCAtacadoProcessor, ZNCellProcessor, MadeInStoreProcessor };
 export type { SupplierProcessor };

@@ -1,127 +1,354 @@
 .tableContainer {
   width: 100%;
-  overflow-x: auto;
-  margin-top: 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  animation: fadeIn var(--transition-normal);
 }
 
-.tableControls {
+.tableHeader {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.statsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  padding: var(--space-2) 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.statValue.success {
+  color: var(--color-success);
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-4);
   align-items: center;
-  padding: 1rem;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+}
+
+.searchBox {
+  flex: 1;
+  position: relative;
 }
 
 .searchInput {
-  padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.25rem;
-  width: 300px;
-  font-size: 1rem;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  padding-left: calc(var(--space-4) + 20px); /* Espaço para ícone */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  transition: all var(--transition-fast);
 }
 
-.resultsCount {
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.searchBox::before {
+  content: "🔍";
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.filterButtons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.filterSelect {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.resultsInfo {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-background);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted) transparent;
+}
+
+.tableWrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background-color: var(--color-muted);
+  border-radius: var(--radius-full);
 }
 
 .resultsTable {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
 }
 
-.resultsTable th,
-.resultsTable td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
 .resultsTable th {
-  background-color: #f3f4f6;
+  position: sticky;
+  top: 0;
+  background-color: var(--color-table-header);
+  color: var(--color-muted);
   font-weight: 600;
-  color: #374151;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-table-border);
+  white-space: nowrap;
 }
 
 .sortableHeader {
   cursor: pointer;
   user-select: none;
+  position: relative;
+  padding-right: var(--space-6) !important;
+  transition: background-color var(--transition-fast);
+}
+
+.sortableHeader::after {
+  content: "▲";
+  position: absolute;
+  right: var(--space-3);
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+.sortableHeader.asc::after {
+  content: "▲";
+  opacity: 1;
+}
+
+.sortableHeader.desc::after {
+  content: "▼";
+  opacity: 1;
 }
 
 .sortableHeader:hover {
-  background-color: #e5e7eb;
+  background-color: var(--color-highlight);
 }
 
+.resultsTable td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-table-border);
+  font-size: 0.9375rem;
+  vertical-align: middle;
+}
+
+.resultsTable tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.resultsTable tbody tr:hover {
+  background-color: var(--color-table-row-hover);
+}
+
+/* Estilos para coluna de condição */
+.conditionNew {
+  color: var(--color-success);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.conditionNew::before {
+  content: "●";
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+.conditionUsed {
+  color: var(--color-warning);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.conditionUsed::before {
+  content: "●";
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+.conditionSwap {
+  color: var(--color-muted);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.conditionSwap::before {
+  content: "●";
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+/* Classes já existentes... */
 .priceCell {
   font-weight: 600;
-  color: #047857;
 }
 
-.savings {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  background-color: #ecfdf5;
-  color: #047857;
-  border-radius: 0.25rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.priceDetails {
-  cursor: pointer;
-}
-
-.priceDetails summary {
-  padding: 0.25rem 0;
-  color: #4b5563;
-}
-
-.pricesList {
-  list-style-type: none;
-  padding: 0.5rem 0;
-  margin: 0;
-  font-size: 0.875rem;
-}
-
-.pricesList li {
-  padding: 0.25rem 0;
+.bestPriceContainer {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.bestPrice {
+.priceValue {
+  color: var(--color-success);
   font-weight: 600;
-  color: #047857;
 }
 
 .priceSource {
-  opacity: 0.8;
-  margin-right: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-muted);
 }
 
+.savingsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.savingsPercent {
+  display: inline-block;
+  padding: calc(var(--space-1) / 2) var(--space-2);
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.savingsAmount {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.comparisonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.comparisonPrice {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.comparisonSource {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.singlePrice {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* Highlight produtos com múltiplos fornecedores */
+.multipleSourcesRow {
+  background-color: var(--color-table-highlight);
+}
+
+.multipleSourcesRow:hover {
+  background-color: var(--color-highlight-hover) !important;
+}
+
+/* Mensagem quando não há resultados */
+.noResults {
+  padding: var(--space-12);
+  text-align: center;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
-  .tableContainer {
-    box-shadow: none;
+  .tableHeader {
+    padding: var(--space-3);
   }
   
-  .tableControls {
+  .statsContainer {
+    gap: var(--space-3);
+  }
+  
+  .filters {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    gap: var(--space-3);
+    align-items: stretch;
   }
   
-  .searchInput {
-    width: 100%;
+  .statValue {
+    font-size: 1.125rem;
   }
   
-  .resultsTable th:nth-child(2),
-  .resultsTable td:nth-child(2) {
-    max-width: 150px;
+  .resultsTable th,
+  .resultsTable td {
+    padding: var(--space-2);
+    font-size: 0.875rem;
+  }
+  
+  /* Tabela responsiva para telas pequenas */
+  .resultsTable {
+    display: block;
+    overflow-x: auto;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }

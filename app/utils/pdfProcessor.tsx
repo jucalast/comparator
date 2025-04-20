@@ -1,6 +1,7 @@
 'use client';
 
 import { Product } from '../types';
+import { findSupplierProcessor } from '../suppliers';
 
 // Expressão regular mais flexível para capturar diferentes formatos de produtos
 const PRODUCT_REGEX = /(\d{5,6}-\d+)\s+(.+?)\s+(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})(?:R\$)?/gm;
@@ -86,13 +87,21 @@ export async function extractTextFromPDF(file: File): Promise<string> {
 }
 
 /**
- * Extrai produtos de um texto usando regex
+ * Extrai produtos de um texto usando processadores específicos ou regex genérica
  */
 export function extractProductsWithRegex(text: string, source: string): Product[] {
-  console.log(`Analisando texto do arquivo ${source} com ${text.length} caracteres`);
-  console.log('Primeiros 200 caracteres do texto:', text.substring(0, 200));
+  console.log(`Analisando texto do PDF: ${source}`);
   
-  // Usar expressão mais flexível com grupos de captura
+  // Primeiro tenta usar processadores específicos de fornecedores
+  const supplierProcessor = findSupplierProcessor(text);
+  if (supplierProcessor) {
+    console.log(`Usando processador específico: ${supplierProcessor.name}`);
+    return supplierProcessor.extractProducts(text, source);
+  }
+  
+  // Se nenhum processador específico for encontrado, usa o regex genérico
+  console.log(`Usando extração genérica por regex para: ${source}`);
+  
   const products: Product[] = [];
   const regex = new RegExp(PRODUCT_REGEX);
   let match;
@@ -121,6 +130,6 @@ export function extractProductsWithRegex(text: string, source: string): Product[
     }
   }
   
-  console.log(`Extraídos ${products.length} produtos do arquivo ${source} usando regex`);
+  console.log(`Extraídos ${products.length} produtos do arquivo ${source} usando regex genérica`);
   return products;
 }

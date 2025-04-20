@@ -11,10 +11,6 @@ const nextConfig = {
         fs: false,
         net: false,
         tls: false,
-        canvas: false,
-        "canvas-prebuilt": false,
-        debuglog: false,
-        "pdfjs-dist/build/pdf.worker": false,
       };
     }
     return config;
@@ -27,10 +23,6 @@ const nextConfig = {
       'fs': '',
       'net': '',
       'tls': '',
-      'canvas': '',
-      'canvas-prebuilt': '',
-      'debuglog': '',
-      'pdfjs-dist/build/pdf.worker': '',
     }
   },
 };

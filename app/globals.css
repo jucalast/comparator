@@ -1,82 +1,179 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #0070f3;
-  --primary-dark: #0050b3;
-  --secondary: #06b6d4;
-  --tertiary: #6366f1;
-  --success: #22c55e;
-  --warning: #eab308;
-  --danger: #ef4444;
-  --border-radius: 0.5rem;
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  /* Sistema de cores - Light Mode */
+  --color-background: #f8fafc;
+  --color-foreground: #161616;
+  --color-muted: #303030;
+  --color-border: #e2e8f0;
+  --color-card: #ffffff;
   
-  /* Valores RGB para uso com transparência */
-  --primary-rgb: 0, 112, 243;
-  --primary-dark-rgb: 0, 80, 179;
-  --secondary-rgb: 6, 182, 212;
-  --tertiary-rgb: 99, 102, 241;
-  --success-rgb: 34, 197, 94;
-  --warning-rgb: 234, 179, 8;
-  --danger-rgb: 239, 68, 68;
-  --foreground-rgb: 23, 23, 23;
-  --background-rgb: 255, 255, 255;
+  /* Cores semânticas */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  
+  /* Cores de estado */
+  --color-highlight: rgba(255, 255, 255, 0.1);
+  --color-highlight-hover: rgba(255, 255, 255, 0.15);
+  
+  /* Elementos de tabela */
+  --color-table-header: #f1f5f9;
+  --color-table-row-hover: #f8fafc;
+  --color-table-border: hsl(0, 0%, 100%);
+  --color-table-alternate: #ffffff;
+  --color-table-highlight: rgba(255, 255, 255, 0.05);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Raios de borda */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+  
+  /* Tipografia */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  
+  /* Espaçamento */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  
+  /* Transições */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 350ms;
 }
 
+/* Dark Mode - Ativado automaticamente pela preferência do sistema ou manualmente */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --primary: #0ea5e9;
-    --primary-dark: #38bdf8;
-    --secondary: #22d3ee;
-    --tertiary: #818cf8;
-    --success: #4ade80;
-    --warning: #facc15;
-    --danger: #f87171;
+    /* Sistema de cores - Dark Mode */
+    --color-background: #121212;
+    --color-foreground: #f8fafc; 
+    --color-muted: #b6b6b6;
+    --color-border: #232323;
+    --color-card: #1a1a1a;
     
-    /* Valores RGB para uso com transparência no modo escuro */
-    --primary-rgb: 14, 165, 233;
-    --primary-dark-rgb: 56, 189, 248;
-    --secondary-rgb: 34, 211, 238;
-    --tertiary-rgb: 129, 140, 248;
-    --success-rgb: 74, 222, 128;
-    --warning-rgb: 250, 204, 21;
-    --danger-rgb: 248, 113, 113;
-    --foreground-rgb: 237, 237, 237;
-    --background-rgb: 10, 10, 10;
+    /* Cores semânticas mantêm mais saturação no dark mode para legibilidade */
+    --color-primary: #3b82f6;
+    --color-primary-hover: #60a5fa;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    
+    /* Cores de estado no dark mode */
+    --color-highlight: rgba(255, 255, 255, 0.2);
+    --color-highlight-hover: rgba(255, 255, 255, 0.3);
+    
+    /* Elementos de tabela no dark mode */
+    --color-table-header: #222222;
+    --color-table-row-hover: #1a1a1a;
+    --color-table-border: #1d1d1d;
+    --color-table-alternate: #1f1f1f; 
+    --color-table-highlight: rgba(47, 47, 47, 0.1);
+    
+    /* Ajuste de sombras para dark mode */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+/* Reset e estilos base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: var(--space-4);
+}
+
+p {
+  margin-bottom: var(--space-4);
 }
 
 a {
-  color: inherit;
+  color: var(--color-primary);
   text-decoration: none;
+  transition: color var(--transition-fast)
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 1.15;
+}
+
+/* Utilitários comuns */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Correção para o ícone de informação */
+.info-icon, 
+[class*="info-icon"],
+svg[data-icon="info"],
+.icon-info {
+  width: 1rem !important;
+  height: 1rem !important;
+  font-size: 1rem !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
 }

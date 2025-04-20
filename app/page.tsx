@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import FileUploader from './components/FileUploader';
 import ResultsTable from './components/ResultsTable';
 import ProcessingIndicator from './components/ProcessingIndicator';
 import { ComparisonResult, FileWithPreview, Product, ProcessingProgress } from './types';
 import { processTextFile } from './utils/fileProcessor';
-import { extractProductsWithRegex, extractTextFromPDF } from './utils/pdfProcessor';
 import styles from './styles/Home.module.css';
 
 export default function Home() {
@@ -78,9 +77,10 @@ export default function Home() {
   };
 
   const processFiles = async (files: FileWithPreview[]) => {
+    if (files.length === 0) return;
+    
     setIsProcessing(true);
     setError(null);
-    setResults([]);
     
     // Inicializa o progresso
     setProgress({
@@ -94,7 +94,7 @@ export default function Home() {
     try {
       const processingErrors: string[] = [];
       
-      // Processar cada arquivo sequencialmente, atualizando os resultados em tempo real
+      // Processar cada arquivo sequencialmente
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         setProgress(prev => ({
@@ -102,25 +102,13 @@ export default function Home() {
           currentFile: file.name
         }));
         
-        console.log(`Processando arquivo: ${file.name} (${file.size} bytes, tipo: ${file.type})`);
-        
         try {
           let products: Product[] = [];
           
-          if (file.name.toLowerCase().endsWith('.pdf')) {
-            // Processar arquivo PDF
-            console.log(`Extraindo texto de PDF: ${file.name}`);
-            const text = await extractTextFromPDF(file);
-            products = extractProductsWithRegex(text, file.name);
-          } else if (
-            file.name.toLowerCase().endsWith('.txt') || 
-            file.name.toLowerCase().endsWith('.csv')
-          ) {
-            // Processar arquivo TXT/CSV
-            console.log(`Processando arquivo de texto: ${file.name}`);
+          if (file.name.toLowerCase().endsWith('.txt') || 
+            file.name.toLowerCase().endsWith('.csv')) {
             products = await processTextFile(file);
           } else {
-            console.warn(`Tipo de arquivo não suportado: ${file.name}`);
             processingErrors.push(`Tipo de arquivo não suportado: ${file.name}`);
             continue;
           }
@@ -135,7 +123,6 @@ export default function Home() {
           if (products.length === 0) {
             processingErrors.push(`Nenhum produto encontrado em: ${file.name}`);
           } else {
-            // Atualiza os resultados com os novos produtos imediatamente
             updateResultsWithProducts(products);
           }
           
@@ -161,27 +148,13 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <h1 className={styles.title}>Comparador de Preços</h1>
-        
-        <p className={styles.description}>
-          Faça upload de tabelas de preços em PDF ou TXT/CSV para comparar e encontrar os melhores preços para cada produto.
-        </p>
-        
-        <div className={styles.formatInfo}>
-          <details>
-            <summary>📋 Formatos de arquivo suportados</summary>
-            <div className={styles.formatDetails}>
-              <p><strong>PDFs:</strong> O sistema busca por linhas no formato "12345-67 DESCRIÇÃO DO PRODUTO 123,45R$".</p>
-              <p><strong>Listas de Preços em TXT:</strong> O sistema reconhece formatos específicos de fornecedores:</p>
-              <ul>
-                <li><strong>ZN CELL:</strong> Lista com emojis de cores e preços</li>
-                <li><strong>JC Atacado:</strong> Lista com símbolos "➖" e "➡" para modelos e cores</li>
-                <li><strong>Genérico:</strong> Qualquer lista com produto, preço em formato "R$ XX,XX"</li>
-              </ul>
-              <p><strong>CSV/TXT:</strong> Arquivos com colunas que contenham código, descrição e preço do produto.</p>
-            </div>
-          </details>
-        </div>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Comparador de Preços</h1>
+          
+          <p className={styles.description}>
+            Faça upload de tabelas de preços em TXT/CSV para comparar e encontrar os melhores preços para cada produto.
+          </p>
+        </header>
         
         <FileUploader onFilesUploaded={processFiles} />
         
@@ -190,14 +163,20 @@ export default function Home() {
         )}
         
         {error && (
-          <div className={styles.error}>
+          <div className={styles.error} role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+            </svg>
             <p>{error}</p>
           </div>
         )}
         
         {results.length > 0 && (
           <div className={styles.results}>
-            <h2>Resultados da Comparação {isProcessing ? '(Atualizando em tempo real)' : ''}</h2>
+            <h2>
+              Resultados da Comparação 
+              {isProcessing && <span>Atualizando...</span>}
+            </h2>
             <ResultsTable results={results} />
             
             <div className={styles.exportOptions}>
@@ -217,9 +196,14 @@ export default function Home() {
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
                 }}
                 className={styles.exportButton}
+                aria-label="Exportar resultados para CSV"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                </svg>
                 Exportar Resultados (CSV)
               </button>
             </div>

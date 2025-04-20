@@ -79,16 +79,19 @@ export class JCAtacadoProcessor implements SupplierProcessor {
           
           // Cria um produto para cada cor
           colors.forEach(color => {
+            // Padronizar: normalizar storage para remover espaços
+            const normalizedStorage = currentStorage.replace(/\s+/g, '');
+            
             // Gera descrição padronizada para facilitar comparação entre fornecedores
             const details = {
               brand: 'Apple',
               model: `iPhone ${currentModel.replace(/iPhone|iphone/i, '').trim()}`,
-              storage: currentStorage,
+              storage: normalizedStorage,
               color: color,
               condition: 'Seminovo'
             };
             
-            // Normaliza o código usando uma função auxiliar
+            // Normaliza o código usando a função auxiliar
             const { normalizedCode, normalizedDescription } = normalizeProductDetails(details);
             
             // Adiciona o produto com código normalizado
@@ -96,8 +99,8 @@ export class JCAtacadoProcessor implements SupplierProcessor {
               code: normalizedCode,
               description: `${normalizedDescription} - JC Atacado`,
               price: currentPrice,
-              source: `${source} (JC Atacado)`,
-              details // Guardamos os detalhes originais para referência
+              source: `JC Atacado`,
+              details
             });
             
             console.log(`Produto extraído: ${normalizedDescription} - R$ ${currentPrice}`);

@@ -72,7 +72,7 @@ export const processTextFile = async (file: File): Promise<Product[]> => {
           }
         }
         
-        // Verifica se é um arquivo CSV pelo conteúdo
+        // Se não conseguiu extrair por outros métodos, tenta CSV ou regex
         const isCSV = text.includes(',') || text.includes(';');
         
         // Se parece CSV, tenta processar como CSV primeiro
